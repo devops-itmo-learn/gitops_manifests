@@ -1,0 +1,51 @@
+# OS-специфичные файлы
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Редакторы и IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# Временные файлы
+*.tmp
+*.bak
+*.log
+*.cache
+
+# Локальные конфигурации и секреты
+*.local.yaml
+*.local.yml
+secrets/
+.env
+.env.local
+*.key
+*.pem
+
+# Kubernetes временные файлы
+*.kubeconfig.local
+kubeconfig.local
+
+# Логи и отчеты
+logs/
+*.log
+reports/
+
+# Скрипты для локальной разработки (если не хотите коммитить)
+scripts/local/
+*.sh.local
+
