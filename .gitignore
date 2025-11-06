@@ -1,4 +1,4 @@
-# OS-специфичные файлы
+# OS
 .DS_Store
 .DS_Store?
 ._*
@@ -8,7 +8,7 @@ ehthumbs.db
 Thumbs.db
 Desktop.ini
 
-# Редакторы и IDE
+# IDE
 .vscode/
 .idea/
 *.swp
@@ -21,13 +21,13 @@ Desktop.ini
 *.sublime-workspace
 *.code-workspace
 
-# Временные файлы
+# Temporary files
 *.tmp
 *.bak
 *.log
 *.cache
 
-# Локальные конфигурации и секреты
+# Local configurations and secrets
 *.local.yaml
 *.local.yml
 secrets/
@@ -36,16 +36,15 @@ secrets/
 *.key
 *.pem
 
-# Kubernetes временные файлы
+# Kubernetes temporary files
 *.kubeconfig.local
 kubeconfig.local
 
-# Логи и отчеты
+# Logs and reports
 logs/
 *.log
 reports/
 
-# Скрипты для локальной разработки (если не хотите коммитить)
+# Local scripts
 scripts/local/
 *.sh.local
-
