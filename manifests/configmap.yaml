@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: dev
+data:
+  SERVER_PORT: "8080"
+  SPRING_APPLICATION_NAME: "demo-app"
+  LOGGING_LEVEL_ROOT: "INFO"
+  LOGGING_LEVEL_SPRING_WEB: "DEBUG"
+
+
