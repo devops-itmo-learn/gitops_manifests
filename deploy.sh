@@ -15,138 +15,84 @@ KIND_CONFIG="$MANIFESTS_DIR/kind-config.yaml"
 
 echo -e "${GREEN}=== GitOps Deployment Script ===${NC}\n"
 
-# Функция для проверки существования ресурса
-check_resource() {
-    local resource_type=$1
-    local resource_name=$2
-    local namespace=$3
-    
-    if [ -n "$namespace" ]; then
-        kubectl get "$resource_type" "$resource_name" -n "$namespace" &>/dev/null
-    else
-        kubectl get "$resource_type" "$resource_name" &>/dev/null
-    fi
-}
+# Шаг 0: Удаление и создание Kind кластера
+echo -e "${YELLOW}[0/5] Управление Kind кластером...${NC}"
 
-# Шаг 0: Проверка и создание Kind кластера
-echo -e "${YELLOW}[0/6] Проверка Kind кластера...${NC}"
+# Проверяем, установлен ли kind
+if ! command -v kind &> /dev/null; then
+    echo -e "${RED}  ✗ Kind не установлен${NC}"
+    echo "  Установите Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installation"
+    exit 1
+fi
 
-# Проверяем, доступен ли kubectl и есть ли подключение к кластеру
-if ! kubectl cluster-info &>/dev/null; then
-    echo "  Кластер не найден или недоступен"
-    
-    # Проверяем, установлен ли kind
-    if ! command -v kind &> /dev/null; then
-        echo -e "${RED}  ✗ Kind не установлен${NC}"
-        echo "  Установите Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installation"
-        exit 1
-    fi
-    
-    # Проверяем, существует ли кластер
-    if kind get clusters 2>/dev/null | grep -q "^${KIND_CLUSTER_NAME}$"; then
-        echo "  Кластер ${KIND_CLUSTER_NAME} существует, но недоступен"
-        echo "  Попытка подключения..."
-        # Kind автоматически настраивает kubeconfig, просто проверяем еще раз
-        sleep 2
-    else
-        echo "  Создание Kind кластера..."
-        if [ -f "$KIND_CONFIG" ]; then
-            kind create cluster --name "$KIND_CLUSTER_NAME" --config "$KIND_CONFIG"
-        else
-            echo -e "${YELLOW}  ⚠ Файл конфигурации $KIND_CONFIG не найден, создание кластера с настройками по умолчанию${NC}"
-            kind create cluster --name "$KIND_CLUSTER_NAME"
-        fi
-        
-        # Ждем, пока кластер станет доступен
-        echo "  Ожидание готовности кластера..."
-        sleep 5
-        
-        # Проверяем подключение
-        for i in {1..10}; do
-            if kubectl cluster-info &>/dev/null; then
-                break
-            fi
-            echo "  Попытка $i/10..."
-            sleep 2
-        done
-    fi
-    
-    # Финальная проверка
-    if kubectl cluster-info &>/dev/null; then
-        echo -e "${GREEN}  ✓ Кластер создан и доступен${NC}"
-        echo -e "${GREEN}  ✓ Кластер должен быть виден в Lens${NC}\n"
-    else
-        echo -e "${RED}  ✗ Не удалось подключиться к кластеру${NC}"
-        echo "  Проверьте: kubectl cluster-info"
-        exit 1
-    fi
+# Всегда удаляем кластер, если он существует
+if kind get clusters 2>/dev/null | grep -q "^${KIND_CLUSTER_NAME}$"; then
+    echo "  Удаление существующего кластера ${KIND_CLUSTER_NAME}..."
+    kind delete cluster --name "$KIND_CLUSTER_NAME" 2>/dev/null || true
+    echo -e "${GREEN}  ✓ Кластер удален${NC}"
+    sleep 2
+fi
+
+# Создаем новый кластер
+echo "  Создание нового Kind кластера..."
+if [ -f "$KIND_CONFIG" ]; then
+    kind create cluster --name "$KIND_CLUSTER_NAME" --config "$KIND_CONFIG"
 else
-    CLUSTER_NAME=$(kubectl config current-context 2>/dev/null || echo "unknown")
-    echo -e "${GREEN}  ✓ Кластер доступен: $CLUSTER_NAME${NC}\n"
+    echo -e "${YELLOW}  ⚠ Файл конфигурации $KIND_CONFIG не найден, создание кластера с настройками по умолчанию${NC}"
+    kind create cluster --name "$KIND_CLUSTER_NAME"
 fi
 
-# Шаг 1: Удаление существующих ресурсов (если есть)
-echo -e "${YELLOW}[1/6] Очистка предыдущего запуска...${NC}"
+# Ждем, пока кластер станет доступен
+echo "  Ожидание готовности кластера..."
+sleep 5
 
-if check_resource deployment demo-app "$NAMESPACE"; then
-    echo "  Удаление Deployment..."
-    kubectl delete -f "$MANIFESTS_DIR/deployment.yaml" --ignore-not-found=true
+# Проверяем подключение
+for i in {1..10}; do
+    if kubectl cluster-info &>/dev/null; then
+        break
+    fi
+    echo "  Попытка подключения $i/10..."
     sleep 2
+done
+
+# Финальная проверка
+if kubectl cluster-info &>/dev/null; then
+    CLUSTER_NAME=$(kubectl config current-context 2>/dev/null || echo "$KIND_CLUSTER_NAME")
+    echo -e "${GREEN}  ✓ Кластер создан и доступен: $CLUSTER_NAME${NC}"
+    echo -e "${GREEN}  ✓ Кластер должен быть виден в Lens${NC}\n"
+else
+    echo -e "${RED}  ✗ Не удалось подключиться к кластеру${NC}"
+    echo "  Проверьте: kubectl cluster-info"
+    exit 1
 fi
 
-if check_resource service demo-app "$NAMESPACE"; then
-    echo "  Удаление Service..."
-    kubectl delete -f "$MANIFESTS_DIR/service.yaml" --ignore-not-found=true
-    sleep 1
-fi
+# Шаг 1: Применение манифестов в правильном порядке
+echo -e "${YELLOW}[1/5] Применение манифестов...${NC}"
 
-if check_resource configmap app-config "$NAMESPACE"; then
-    echo "  Удаление ConfigMap..."
-    kubectl delete -f "$MANIFESTS_DIR/configmap.yaml" --ignore-not-found=true
-    sleep 1
-fi
-
-if check_resource secret docker-registry-secret "$NAMESPACE"; then
-    echo "  Удаление Secret..."
-    kubectl delete -f "$MANIFESTS_DIR/secret.yaml" --ignore-not-found=true
-    sleep 1
-fi
-
-if check_resource namespace "$NAMESPACE"; then
-    echo "  Удаление Namespace..."
-    kubectl delete -f "$MANIFESTS_DIR/namespace-dev.yaml" --ignore-not-found=true
-    sleep 2
-fi
-
-echo -e "${GREEN}  ✓ Очистка завершена${NC}\n"
-
-# Шаг 2: Применение манифестов в правильном порядке
-echo -e "${YELLOW}[2/6] Применение манифестов...${NC}"
-
-echo "  Создание Namespace..."
+echo "  Применение Namespace..."
 kubectl apply -f "$MANIFESTS_DIR/namespace-dev.yaml"
 sleep 1
 
-echo "  Создание Secret..."
+echo "  Применение Secret..."
 kubectl apply -f "$MANIFESTS_DIR/secret.yaml"
 sleep 1
 
-echo "  Создание ConfigMap..."
+echo "  Применение ConfigMap..."
 kubectl apply -f "$MANIFESTS_DIR/configmap.yaml"
 sleep 1
 
-echo "  Создание Deployment..."
+echo "  Применение Deployment..."
 kubectl apply -f "$MANIFESTS_DIR/deployment.yaml"
 sleep 2
 
-echo "  Создание Service..."
+echo "  Применение Service..."
 kubectl apply -f "$MANIFESTS_DIR/service.yaml"
 sleep 1
 
 echo -e "${GREEN}  ✓ Все манифесты применены${NC}\n"
 
-# Шаг 3: Ожидание готовности подов
-echo -e "${YELLOW}[3/6] Ожидание запуска подов...${NC}"
+# Шаг 2: Ожидание готовности подов
+echo -e "${YELLOW}[2/5] Ожидание запуска подов...${NC}"
 
 # Ждем максимум 60 секунд
 TIMEOUT=60
@@ -171,8 +117,8 @@ if [ $ELAPSED -ge $TIMEOUT ]; then
     echo -e "${RED}  ⚠ Таймаут ожидания готовности подов${NC}\n"
 fi
 
-# Шаг 4: Проверка статуса
-echo -e "${YELLOW}[4/6] Проверка статуса ресурсов...${NC}\n"
+# Шаг 3: Проверка статуса
+echo -e "${YELLOW}[3/5] Проверка статуса ресурсов...${NC}\n"
 
 kubectl get all -n "$NAMESPACE"
 
@@ -187,8 +133,8 @@ else
     echo "  Проверьте логи: kubectl logs -n $NAMESPACE -l app=demo-app"
 fi
 
-# Шаг 5: Информация о доступе
-echo -e "\n${YELLOW}[5/6] Информация о доступе:${NC}\n"
+# Шаг 4: Информация о доступе
+echo -e "\n${YELLOW}[4/5] Информация о доступе:${NC}\n"
 
 NODEPORT=$(kubectl get svc demo-app -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null || echo "не найден")
 
@@ -202,8 +148,8 @@ fi
 echo ""
 echo -e "${GREEN}=== Развертывание завершено ===${NC}\n"
 
-# Шаг 6: Информация о Lens
-echo -e "${YELLOW}[6/6] Информация о Lens:${NC}\n"
+# Шаг 5: Информация о Lens
+echo -e "${YELLOW}[5/5] Информация о Lens:${NC}\n"
 echo -e "${GREEN}  ✓ Кластер должен быть автоматически обнаружен в Lens${NC}"
 echo -e "  Если кластер не виден в Lens:"
 echo -e "    1. Убедитесь, что Lens запущен"
