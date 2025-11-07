@@ -154,7 +154,7 @@ echo -e "${GREEN}  ✓ Кластер должен быть автоматиче
 echo -e "  Если кластер не виден в Lens:"
 echo -e "    1. Убедитесь, что Lens запущен"
 echo -e "    2. Проверьте контекст: kubectl config current-context"
-echo -e "    3. В Lens: File > Add Cluster > или выберите из списка доступных контекстов"
+echo -e "    3. Вставьте конфиг в Lens: kubectl config view --minify --raw"
 echo ""
 
 # Полезные команды
