@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: demo-app
@@ -21,7 +21,7 @@ spec:
         zone: dev
       containers:
         - name: demo-app
-          image: index.docker.io/gitopsitmo/gitops-app:latest
+          image: gitopsitmo/gitops-app:0.1.0
           ports:
             - name: http
               containerPort: 8080
