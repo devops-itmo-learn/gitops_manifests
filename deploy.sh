@@ -25,21 +25,18 @@ if ! command -v kind &> /dev/null; then
     exit 1
 fi
 
-# Всегда удаляем кластер, если он существует
+# Проверяем, существует ли кластер
 if kind get clusters 2>/dev/null | grep -q "^${KIND_CLUSTER_NAME}$"; then
-    echo "  Удаление существующего кластера ${KIND_CLUSTER_NAME}..."
-    kind delete cluster --name "$KIND_CLUSTER_NAME" 2>/dev/null || true
-    echo -e "${GREEN}  ✓ Кластер удален${NC}"
-    sleep 2
-fi
-
-# Создаем новый кластер
-echo "  Создание нового Kind кластера..."
-if [ -f "$KIND_CONFIG" ]; then
-    kind create cluster --name "$KIND_CLUSTER_NAME" --config "$KIND_CONFIG"
+    echo -e "${GREEN}  ✓ Кластер ${KIND_CLUSTER_NAME} уже существует, пропускаем создание${NC}"
 else
-    echo -e "${YELLOW}  ⚠ Файл конфигурации $KIND_CONFIG не найден, создание кластера с настройками по умолчанию${NC}"
-    kind create cluster --name "$KIND_CLUSTER_NAME"
+    # Создаем новый кластер только если он не существует
+    echo "  Создание нового Kind кластера..."
+    if [ -f "$KIND_CONFIG" ]; then
+        kind create cluster --name "$KIND_CLUSTER_NAME" --config "$KIND_CONFIG"
+    else
+        echo -e "${YELLOW}  ⚠ Файл конфигурации $KIND_CONFIG не найден, создание кластера с настройками по умолчанию${NC}"
+        kind create cluster --name "$KIND_CLUSTER_NAME"
+    fi
 fi
 
 # Ждем, пока кластер станет доступен
