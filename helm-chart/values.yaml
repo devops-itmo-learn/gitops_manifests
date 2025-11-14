@@ -1,0 +1,22 @@
+replicaCount: 3
+image: gitopsitmo/gitops-app:0.1.0
+app: demo-app
+namespace: dev
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+service:
+  type: NodePort
+
+ports:
+  port: 8080
+  nodePort: 30080
+
+secret:
+  type: kubernetes.io/dockerconfigjson
