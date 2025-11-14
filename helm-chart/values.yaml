@@ -1,7 +1,6 @@
 replicaCount: 3
 image: gitopsitmo/gitops-app:0.1.0
 app: demo-app
-namespace: dev
 
 resources:
   requests:

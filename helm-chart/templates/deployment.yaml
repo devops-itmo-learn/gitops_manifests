@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "helm-chart.fullname" . }}-deployment
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "helm-chart.labels" . | nindent 4 }}
     app: {{ .Values.app }}
