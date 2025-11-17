@@ -4,7 +4,7 @@ metadata:
   name: {{ include "helm-chart.fullname" . }}-deployment
   namespace: {{ .Release.Namespace }}
   labels:
-    {{ include "helm-chart.labels" . | nindent 4 }}
+    {{- include "helm-chart.labels" . | nindent 4 }}
     app: {{ .Values.app }}
 spec:
   replicas: {{ .Values.replicaCount }}

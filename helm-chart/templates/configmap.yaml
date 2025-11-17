@@ -4,7 +4,7 @@ metadata:
   name: {{ include "helm-chart.fullname" . }}-config
   namespace: {{ .Release.Namespace }}
   labels:
-    {{ include "helm-chart.labels" . | nindent 4 }}
+    {{- include "helm-chart.labels" . | nindent 4 }}
     app: {{ .Values.app }}
     component: config
 data:
