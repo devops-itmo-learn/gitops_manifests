@@ -17,7 +17,7 @@ spec:
         app: {{ .Values.app }}
     spec:
       imagePullSecrets:
-        - name: docker-registry-secret
+        - name: {{ include "helm-chart.fullname" . }}-registry
       nodeSelector:
         zone: dev
       containers:
