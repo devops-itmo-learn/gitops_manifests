@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   yamllint:
-    name: Check YAML formatting
+    name: "YAML Lint"
     runs-on: ubuntu-latest
     # ✅ ДОБАВЛЕНО: Job-specific permissions (опционально)
     permissions:
@@ -37,7 +37,7 @@ jobs:
         run: yamllint ./manifests/k8s
 
   helm_checks:
-    name: Helm lint, template, kubeconform
+    name: "Helm Checks"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -82,7 +82,7 @@ jobs:
           fi
 
   checkov:
-    name: Run Checkov security scan
+    name: "Security Scan"
     runs-on: ubuntu-latest
     permissions:
       contents: read
