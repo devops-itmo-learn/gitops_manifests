@@ -7,10 +7,19 @@ on:
       - master
       - develop
 
+# ✅ ДОБАВЛЕНО: Конкретные permissions вместо write-all
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   yamllint:
     name: Check YAML formatting
     runs-on: ubuntu-latest
+    # ✅ ДОБАВЛЕНО: Job-specific permissions (опционально)
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -30,6 +39,8 @@ jobs:
   helm_checks:
     name: Helm lint, template, kubeconform
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -73,6 +84,8 @@ jobs:
   checkov:
     name: Run Checkov security scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -88,4 +101,3 @@ jobs:
           else
             echo "Directory ./manifests/k8s not found, skipping Checkov."
           fi
-
