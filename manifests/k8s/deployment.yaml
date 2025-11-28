@@ -15,13 +15,22 @@ spec:
       labels:
         app: demo-app
     spec:
+      # Отключаем автоматическое монтирование service account token
+      automountServiceAccountToken: false
+      # Security context на уровне Pod
+      securityContext:
+        runAsNonRoot: true        # Запрещаем запуск от root
+        runAsUser: 10000          # Запускаем от пользователя с высоким UID
+        seccompProfile:
+          type: RuntimeDefault     # Включаем seccomp защиту
       imagePullSecrets:
         - name: docker-registry-secret
       nodeSelector:
         zone: dev
       containers:
         - name: demo-app
-          image: gitopsitmo/gitops-app:0.1.0
+          image: gitopsitmo/gitops-app:0.1.0  # Рекомендуется перейти на digest
+          imagePullPolicy: Always  # Добавляем Always
           ports:
             - name: http
               containerPort: 8080
@@ -29,6 +38,16 @@ spec:
           envFrom:
             - configMapRef:
                 name: app-config
+          # Security context на уровне Container
+          securityContext:
+            allowPrivilegeEscalation: false  # Запрещаем эскалацию привилегий
+            readOnlyRootFilesystem: true     # Файловая система только для чтения
+            runAsNonRoot: true
+            runAsUser: 10000
+            capabilities:
+              drop:
+                - ALL              # Убираем ВСЕ capabilities
+                - NET_RAW          # Явно убираем NET_RAW
           resources:
             requests:
               memory: "256Mi"
@@ -52,3 +71,14 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
+          # Если приложению нужна запись, монтируем временные volumes
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+            - name: logs-volume
+              mountPath: /var/log
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+        - name: logs-volume
+          emptyDir: {}
