@@ -97,7 +97,7 @@ jobs:
       - name: Run Checkov on repo
         run: |
           if [ -d "./manifests/k8s" ]; then
-            checkov -d . --skip-check CKV_K8S_43
+            checkov -d ./manifests/k8s --skip-check CKV_K8S_43
           else
             echo "Directory ./manifests/k8s not found, skipping Checkov."
           fi
