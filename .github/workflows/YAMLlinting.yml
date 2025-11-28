@@ -1,4 +1,4 @@
-name: YAML and Helm Lint
+name: YAML, Helm, Checkov and Kubeconform Lint
 
 on:
   pull_request:
@@ -27,10 +27,10 @@ jobs:
       - name: Run yamllint
         run: yamllint ./manifests/k8s
 
-  helmlint:
-    name: Check Helm charts
+  helm_checks:
+    name: Helm lint, template, kubeconform
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -40,10 +40,40 @@ jobs:
         with:
           version: '3.14.0'
 
-      - name: Run helm lint
+      - name: Install kubeconform
         run: |
-          if [ -d "./helm-chart" ]; then
-            helm lint ./helm-chart
+          curl -L https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+          | tar xz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Helm lint
+        run: |
+          if [ -d "./manifests/helm-chart" ]; then
+            helm lint ./manifests/helm-chart
           else
-            echo "Directory ./manifests/helm-chart not found, skipping helm lint..."
+            echo "Directory ./manifests/helm-chart not found!"
+            exit 1
           fi
+
+      - name: Helm template
+        run: |
+          helm template mychart ./manifests/helm-chart > rendered.yaml
+
+      - name: Run kubeconform
+        run: |
+          kubeconform -strict -verbose -ignore-missing-schemas rendered.yaml
+
+  checkov:
+    name: Run Checkov security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Run Checkov on repo
+        run: checkov -d .
+
