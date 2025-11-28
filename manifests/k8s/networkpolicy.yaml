@@ -8,21 +8,21 @@ spec:
     matchLabels:
       app: demo-app
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+    - Egress
   ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: demo-app
-    - namespaceSelector:
-        matchLabels:
-          name: dev
+    - from:
+        - podSelector:
+            matchLabels:
+              app: demo-app
+        - namespaceSelector:
+            matchLabels:
+              name: dev
   egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          app: demo-app
-    - namespaceSelector:
-        matchLabels:
-          name: dev
+    - to:
+        - podSelector:
+            matchLabels:
+              app: demo-app
+        - namespaceSelector:
+            matchLabels:
+              name: dev
