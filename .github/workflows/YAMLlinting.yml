@@ -1,4 +1,4 @@
-name: YAML and Helm Lint
+name: YAML, Helm, Checkov and Kubeconform Lint
 
 on:
   pull_request:
@@ -7,10 +7,19 @@ on:
       - master
       - develop
 
+# ✅ ДОБАВЛЕНО: Конкретные permissions вместо write-all
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   yamllint:
-    name: Check YAML formatting
+    name: "YAML Lint"
     runs-on: ubuntu-latest
+    # ✅ ДОБАВЛЕНО: Job-specific permissions (опционально)
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -27,10 +36,12 @@ jobs:
       - name: Run yamllint
         run: yamllint ./manifests/k8s
 
-  helmlint:
-    name: Check Helm charts
+  helm_checks:
+    name: "Helm Checks"
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -40,10 +51,53 @@ jobs:
         with:
           version: '3.14.0'
 
-      - name: Run helm lint
+      - name: Install kubeconform
         run: |
-          if [ -d "./helm-chart" ]; then
-            helm lint ./helm-chart
+          curl -L https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+          | tar xz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Helm lint
+        run: |
+          if [ -d "./manifests/helm-chart" ]; then
+            helm lint ./manifests/helm-chart
           else
-            echo "Directory ./manifests/helm-chart not found, skipping helm lint..."
+            echo "Directory ./manifests/helm-chart not found, skipping lint."
+          fi
+
+      - name: Helm template
+        run: |
+          if [ -d "./manifests/helm-chart" ]; then
+            helm template mychart ./manifests/helm-chart > rendered.yaml
+          else
+            echo "Directory ./manifests/helm-chart not found, skipping template."
+          fi
+
+      - name: Run kubeconform
+        run: |
+          if [ -f rendered.yaml ]; then
+            kubeconform -strict -verbose -ignore-missing-schemas rendered.yaml
+          else
+            echo "Rendered YAML not found, skipping kubeconform."
+          fi
+
+  checkov:
+    name: "Security Scan"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Run Checkov on repo
+        run: |
+          if [ -d "./manifests/k8s" ]; then
+            checkov -d ./manifests/k8s --skip-check CKV_K8S_43
+          else
+            echo "Directory ./manifests/k8s not found, skipping Checkov."
           fi
