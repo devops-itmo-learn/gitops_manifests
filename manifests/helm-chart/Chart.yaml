@@ -1,0 +1,4 @@
+apiVersion: v2
+name: demo-chart
+version: 0.1.0
+description: "helm chart"
