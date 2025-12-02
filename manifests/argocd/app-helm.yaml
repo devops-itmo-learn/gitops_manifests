@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: demo-chart
+    repoURL: docker.io/gitopsitmo
+    targetRevision: 0.1.0
+    helm:
+      valueFiles:
+      - values.yaml
+      - secrets://values.secret.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
