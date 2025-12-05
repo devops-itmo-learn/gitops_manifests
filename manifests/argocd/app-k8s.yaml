@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: raw-manifests-app
+  namespace: argocd
+spec:
+  # Cтандартный проект Argo CD (в будущем поменять на тот, который будет написан в AppProject)
+  project: default
+
+  source:
+    repoURL: "https://github.com/devops-itmo-learn/gitops_manifests.git"
+    path: "manifests/k8s"
+    targetRevision: main
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: k8s-dev
+
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
