@@ -7,7 +7,6 @@ on:
       - master
       - develop
 
-# ✅ ДОБАВЛЕНО: Конкретные permissions вместо write-all
 permissions:
   contents: read
   checks: write
@@ -17,7 +16,6 @@ jobs:
   yamllint:
     name: "YAML Lint"
     runs-on: ubuntu-latest
-    # ✅ ДОБАВЛЕНО: Job-specific permissions (опционально)
     permissions:
       contents: read
 
