@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: demo-project
+  namespace: argocd
+spec:
+  description: "Default project for Helm and raw manifests applications"
+  
+  # Источники из ваших Application
+  sourceRepos:
+    - "https://github.com/devops-itmo-learn/gitops_manifests.git"
+    - "docker.io/gitopsitmo"
+  
+  # Назначения из ваших Application
+  destinations:
+    - namespace: "helm-dev"
+      server: "https://kubernetes.default.svc"
+    - namespace: "k8s-dev"
+      server: "https://kubernetes.default.svc"
+    - namespace: "default"
+      server: "https://kubernetes.default.svc"
+    - namespace: "argocd"
+      server: "https://kubernetes.default.svc"
+  
+  # Разрешенные ресурсы (базовый набор)
+  namespaceResourceWhitelist:
+    # Core
+    - group: ""
+      kind: "ConfigMap"
+    - group: ""
+      kind: "Secret"
+    - group: ""
+      kind: "Service"
+    - group: ""
+      kind: "ServiceAccount"
+    - group: ""
+      kind: "PersistentVolumeClaim"
+    - group: ""
+      kind: "Endpoints"
+    - group: "discovery.k8s.io"
+      kind: "EndpointSlice"
+    
+    # Apps
+    - group: "apps"
+      kind: "Deployment"
+    - group: "apps"
+      kind: "StatefulSet"
+    - group: "apps"
+      kind: "ReplicaSet"
+    - group: ""
+      kind: "Pod"
+    
+    # Networking
+    - group: "networking.k8s.io"
+      kind: "Ingress"
+    - group: "networking.k8s.io"
+      kind: "NetworkPolicy"
+    
+    # Autoscaling
+    - group: "autoscaling"
+      kind: "HorizontalPodAutoscaler"
+    
+    # Batch
+    - group: "batch"
+      kind: "Job"
+    
+    # RBAC
+    - group: "rbac.authorization.k8s.io"
+      kind: "Role"
+    - group: "rbac.authorization.k8s.io"
+      kind: "RoleBinding"
+  
+  clusterResourceWhitelist:
+    - group: ""
+      kind: "Namespace"
+    - group: "rbac.authorization.k8s.io"
+      kind: "ClusterRole"
+    - group: "rbac.authorization.k8s.io"
+      kind: "ClusterRoleBinding"
