@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: default
+  name: demo-project
   namespace: argocd
 spec:
   description: "Default project for Helm and raw manifests applications"
@@ -35,12 +35,20 @@ spec:
       kind: "ServiceAccount"
     - group: ""
       kind: "PersistentVolumeClaim"
+    - group: ""
+      kind: "Endpoints"
+    - group: "discovery.k8s.io"
+      kind: "EndpointSlice"
     
     # Apps
     - group: "apps"
       kind: "Deployment"
     - group: "apps"
       kind: "StatefulSet"
+    - group: "apps"
+      kind: "ReplicaSet"
+    - group: ""
+      kind: "Pod"
     
     # Networking
     - group: "networking.k8s.io"
