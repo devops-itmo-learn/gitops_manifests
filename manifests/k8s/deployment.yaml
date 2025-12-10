@@ -19,18 +19,18 @@ spec:
       automountServiceAccountToken: false
       # Security context на уровне Pod
       securityContext:
-        runAsNonRoot: true        # Запрещаем запуск от root
-        runAsUser: 10000          # Запускаем от пользователя с высоким UID
+        runAsNonRoot: true # Запрещаем запуск от root
+        runAsUser: 10000 # Запускаем от пользователя с высоким UID
         seccompProfile:
-          type: RuntimeDefault     # Включаем seccomp защиту
+          type: RuntimeDefault # Включаем seccomp защиту
       imagePullSecrets:
         - name: docker-registry-secret
       nodeSelector:
         zone: dev
       containers:
         - name: demo-app
-          image: gitopsitmo/gitops-app:0.1.0  # Рекомендуется перейти на digest
-          imagePullPolicy: Always  # Добавляем Always
+          image: gitopsitmo/gitops-app:1.0.1 # Рекомендуется перейти на digest
+          imagePullPolicy: Always # Добавляем Always
           ports:
             - name: http
               containerPort: 8080
@@ -40,14 +40,14 @@ spec:
                 name: app-config
           # Security context на уровне Container
           securityContext:
-            allowPrivilegeEscalation: false  # Запрещаем эскалацию привилегий
-            readOnlyRootFilesystem: true     # Файловая система только для чтения
+            allowPrivilegeEscalation: false # Запрещаем эскалацию привилегий
+            readOnlyRootFilesystem: true # Файловая система только для чтения
             runAsNonRoot: true
             runAsUser: 10000
             capabilities:
               drop:
-                - ALL              # Убираем ВСЕ capabilities
-                - NET_RAW          # Явно убираем NET_RAW
+                - ALL # Убираем ВСЕ capabilities
+                - NET_RAW # Явно убираем NET_RAW
           resources:
             requests:
               memory: "256Mi"
