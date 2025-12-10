@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: demo-app
+  name: repo-helm-app
   namespace: argocd
 spec:
-  project: default
+  project: demo-project
   source:
-    chart: demo-chart
-    repoURL: docker.io/gitopsitmo
-    targetRevision: 0.1.0
+    repoURL: "https://github.com/devops-itmo-learn/gitops_manifests.git"
+    path: "manifests/helm-chart"
+    targetRevision: HEAD
     helm:
       valueFiles:
       - values.yaml

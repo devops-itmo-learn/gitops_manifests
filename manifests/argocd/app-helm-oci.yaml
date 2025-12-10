@@ -1,19 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: raw-manifests-app
+  name: oci-helm-app
   namespace: argocd
 spec:
   project: demo-project
-
   source:
-    repoURL: "https://github.com/devops-itmo-learn/gitops_manifests.git"
-    path: "manifests/k8s"
-    targetRevision: main
-
+    chart: demo-chart
+    repoURL: docker.io/gitopsitmo
+    targetRevision: 0.1.0
+    helm:
+      valueFiles:
+      - values.yaml
+      - secrets://values.secret.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: k8s-dev
+    namespace: helm-dev
 
   syncPolicy:
     automated: {}

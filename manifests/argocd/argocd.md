@@ -374,12 +374,16 @@ kubectl create namespace argocd
 kubectl -n argocd create secret generic helm-secrets-private-keys --from-file=key.txt=$HOME/.config/sops/age/keys.txt
 ```
 
-Далее установка созданного чарта argocd и приминение application
+Далее установка созданного чарта argocd и приминение appproject и application
 
 ```bash
 helm install argo-cd manifests/argocd/argocd-chart/ -n argocd --values manifests/argocd/argocd-chart/values.yaml
 ```
 
 ```bash
-kubectl apply -n argocd -f manifests/argocd/app-helm.yaml
+kubectl apply -n argocd -f manifests/argocd/appproject.yaml
+```
+
+```bash
+kubectl apply -n argocd -f manifests/argocd/app-helm-repo.yaml
 ```
