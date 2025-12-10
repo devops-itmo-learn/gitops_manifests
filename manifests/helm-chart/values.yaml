@@ -1,8 +1,7 @@
-imageVersion: 0.1.0
+imageVersion: 1.0.1
 replicaCount: 3
 image: gitopsitmo/gitops-app
 app: demo-app
-
 resources:
   requests:
     memory: "256Mi"
@@ -10,7 +9,6 @@ resources:
   limits:
     memory: "512Mi"
     cpu: "500m"
-
 ports:
   port: 8080
   nodePort: 30080
